@@ -80,6 +80,10 @@ public:
          */
     void computeBestMove ();
     
+    void incrBlob(Uint16 player);
+    
+    void decrBlob(Uint16 player);
+    
     
 };
 
