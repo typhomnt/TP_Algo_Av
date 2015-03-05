@@ -1,7 +1,6 @@
 #include "strategy.h"
 
 
-
 void Strategy::applyMove (const move& mv) {
     //first check if we need to create a new blob or to move an old one
     if (((mv.ox - mv.nx)*(mv.ox - mv.nx)<=1)&&((mv.oy - mv.ny)*(mv.oy - mv.ny)<=1)) {
@@ -24,14 +23,19 @@ void Strategy::applyMove (const move& mv) {
 	    if ((_blobs.get(mv.nx+i, mv.ny+j)!=-1)&&(_blobs.get(mv.nx+i, mv.ny+j)!=_current_player)) {
 		_blobs.set(mv.nx+i, mv.ny+j, _current_player);
 		incrBlob(_current_player);
-		decrBlob(_current_player + 1);
+		if(_current_player == 0) {
+		    decrBlob(_current_player + 1);
+		} 
+		else {
+		    decrBlob(0);
+		}
 	    }
 	}
 
 }
 
 void Strategy::incrBlob(Uint16 player){
-    if(_current_player == 0){
+    if(player == 0){
 	nb_blob1++;
     }
     else{
@@ -40,7 +44,7 @@ void Strategy::incrBlob(Uint16 player){
 }
 
 void Strategy::decrBlob(Uint16 player){
-    if(_current_player == 0){
+    if(player == 0){
 	nb_blob1--;
     }
     else{
@@ -75,14 +79,50 @@ vector<move>& Strategy::computeValidMoves (vector<move>& valid_moves) const {
     return valid_moves;
 }
 
+
+void Strategy::change_current_player(){
+    if(_current_player == 0){
+	_current_player = 1;
+    }
+    else {
+	_current_player = 0;
+    }
+}
+
+move& Strategy::findMoveMinMax(move& mv, int profondeur){
+    Sint32 score = this->estimateCurrentScore();
+    Sint32 forseenScore ;
+    vector<move> valid_moves;
+    this->computeValidMoves(valid_moves);
+    if(profondeur <= 0){
+	for(vector<move>::iterator it = valid_moves.begin() ; it != valid_moves.end() ; ++it){
+	    Strategy foresee(*this);
+	    foresee.applyMove(*it);
+	    forseenScore = foresee.estimateCurrentScore();
+	    if(forseenScore > score){
+		score = forseenScore;
+		mv = *it;
+	    }
+	}
+	return mv;
+    }
+    else {
+	for(vector<move>::iterator it = valid_moves.begin() ; it != valid_moves.end() ; ++it){
+	      Strategy foresee(*this);
+	      foresee.applyMove(*it);
+	      foresee.change_current_player;
+	      foresee.findMoveMinMax(mv, profondeur - 1);
+	}
+    }
+    
+}
+
 void Strategy::computeBestMove () {
-    // To be improved...
-    std::cout << estimateCurrentScore();
     //The following code find a valid move.
     Sint32 score = this->estimateCurrentScore();
     Sint32 forseenScore ;
     vector<move> valid_moves;
-    valid_moves = this->computeValidMoves(valid_moves);
+    this->computeValidMoves(valid_moves);
     move best_mv;
     //_saveBestMove(*valid_moves.begin());
     for(vector<move>::iterator it = valid_moves.begin() ; it != valid_moves.end() ; ++it){
@@ -91,11 +131,9 @@ void Strategy::computeBestMove () {
 	foresee.applyMove(*it);
 	forseenScore = foresee.estimateCurrentScore();
 	if(forseenScore > score){
-	    std::cout << forseenScore - score << std::endl;
 	    score = forseenScore;
 	    best_mv = *it;
-	}
-	
+	}	
     }
     _saveBestMove(best_mv);
 }

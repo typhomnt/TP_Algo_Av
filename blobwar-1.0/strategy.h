@@ -83,6 +83,10 @@ public:
     void incrBlob(Uint16 player);
     
     void decrBlob(Uint16 player);
+
+    move& findMoveMinMax(move& mv, int profondeur);
+
+    void change_current_player();
     
     
 };
