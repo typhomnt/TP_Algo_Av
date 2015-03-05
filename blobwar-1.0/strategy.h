@@ -87,6 +87,10 @@ public:
     move& findMoveMinMax(move& mv, int profondeur);
 
     void change_current_player();
+
+    bool enemy ;
+
+    void change_enemy;
     
     
 };
