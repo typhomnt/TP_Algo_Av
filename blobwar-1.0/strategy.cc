@@ -89,6 +89,15 @@ void Strategy::change_current_player(){
     }
 }
 
+void Strategy::change_enemy(){
+    if(enemy){
+	enemy = false;
+    }
+    else{
+	enemy = true;
+    }
+}
+
 move& Strategy::findMoveMinMax(move& mv, int profondeur){
     Sint32 score = this->estimateCurrentScore();
     Sint32 forseenScore ;
@@ -119,11 +128,12 @@ move& Strategy::findMoveMinMax(move& mv, int profondeur){
 	for(vector<move>::iterator it = valid_moves.begin() ; it != valid_moves.end() ; ++it){
 	      Strategy foresee(*this);
 	      foresee.applyMove(*it);
-	      foresee.change_current_player;
+	      foresee.change_current_player();
+	      foresee.change_enemy();
 	      Strategy compute(*this);
 	      best_mv = foresee.findMoveMinMax(mv, profondeur - 1);
 	      compute.applyMove(best_mv);
-	      foreseenScore = compute.estimateCurrentScore();
+	      forseenScore = compute.estimateCurrentScore();
 	      if(!enemy){
 		  if(forseenScore > score){
 		    score = forseenScore;
@@ -143,7 +153,7 @@ move& Strategy::findMoveMinMax(move& mv, int profondeur){
 }
 
 void Strategy::computeBestMove () {
-    //The following code find a valid move.
+    /* //The following code find a valid move.
     Sint32 score = this->estimateCurrentScore();
     Sint32 forseenScore ;
     vector<move> valid_moves;
@@ -160,6 +170,8 @@ void Strategy::computeBestMove () {
 	    best_mv = *it;
 	}	
     }
-    _saveBestMove(best_mv);
+    _saveBestMove(best_mv);*/
+    move best_mv;
+    _saveBestMove(findMoveMinMax(best_mv,2));
 }
 
