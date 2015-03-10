@@ -1,5 +1,5 @@
 #include "strategy.h"
-
+#include <limits>
 
 void Strategy::applyMove (const move& mv) {
     //first check if we need to create a new blob or to move an old one
@@ -99,17 +99,24 @@ void Strategy::change_enemy(){
 }
 
 move& Strategy::findMoveMinMax(move& mv, int profondeur){
-    Sint32 score = this->estimateCurrentScore();
+    Sint32 score;
     Sint32 forseenScore ;
     vector<move> valid_moves;
-    move best_mv;
+    move best_mv_en;
     this->computeValidMoves(valid_moves);
+    std::cout << "Profondeur : " << profondeur << " Nbr coups valides " << valid_moves.size() << "joueur: "  << _current_player <<std::endl ;
     if(profondeur <= 0){
+	score = std::numeric_limits<Sint32>::min();
 	for(vector<move>::iterator it = valid_moves.begin() ; it != valid_moves.end() ; ++it){
 	    Strategy foresee(*this);
 	    foresee.applyMove(*it);
 	    forseenScore = foresee.estimateCurrentScore();
-	    if(!enemy){
+	    if(forseenScore > score){
+		    score = forseenScore;
+		    mv = *it;
+		    std::cout << "Score : " << score << "joueur: "  << _current_player <<std::endl ; 
+	    }
+	    /*if(!enemy){
 		if(forseenScore > score){
 		    score = forseenScore;
 		    mv = *it;
@@ -120,33 +127,49 @@ move& Strategy::findMoveMinMax(move& mv, int profondeur){
 		    score = forseenScore;
 		    mv = *it;
 		}
-	    }
+		}*/
 	}
+	std::cout << "Score final : " << score << "joueur: "  << _current_player <<std::endl ; 
 	return mv;
     }
     else {
-	for(vector<move>::iterator it = valid_moves.begin() ; it != valid_moves.end() ; ++it){
-	      Strategy foresee(*this);
-	      foresee.applyMove(*it);
-	      foresee.change_current_player();
-	      foresee.change_enemy();
-	      Strategy compute(*this);
-	      best_mv = foresee.findMoveMinMax(mv, profondeur - 1);
-	      compute.applyMove(best_mv);
-	      forseenScore = compute.estimateCurrentScore();
-	      if(!enemy){
-		  if(forseenScore > score){
-		    score = forseenScore;
-		    mv = best_mv;
-		  }
-	      }
-	      else {
-		  if(forseenScore < score){
-		      score = forseenScore;
-		      mv = best_mv;
-		  }
-	      }
+	/*if(!enemy){
+	    score = std::numeric_limits<Sint32>::max();
 	}
+	else{
+	    score =  std::numeric_limits<Sint32>::max();
+	}*/
+	score =  std::numeric_limits<Sint32>::max();
+	for(vector<move>::iterator it = valid_moves.begin() ; it != valid_moves.end() ; ++it){
+	    Strategy foresee(*this);
+	    foresee.applyMove(*it);
+	    foresee.change_current_player();
+	    foresee.change_enemy();
+	    Strategy compute(foresee);
+	    //compute.change_current_player();
+	    //compute.change_enemy();
+	    compute.applyMove(foresee.findMoveMinMax(best_mv_en, profondeur - 1));
+	    forseenScore = compute.estimateCurrentScore();
+	    std::cout << "Score en : " << forseenScore << "joueur: "  << _current_player <<std::endl ; 
+	    if(forseenScore < score){
+		score = forseenScore;
+		std::cout << "Score origin : " << score << "joueur: "  << _current_player <<std::endl ; 
+		mv = *it;
+	    }
+		/*if(!enemy){
+		if(forseenScore < score){
+		    score = forseenScore;
+		    mv = *it;
+		}
+	    }
+	    else {
+		if(forseenScore < score){
+		    score = forseenScore;
+		    mv = *it;
+		}
+		}*/
+	}
+	std::cout << "Score final origin : " << score << "joueur: "  << _current_player <<std::endl ; 
 	return mv;
     }
     
@@ -172,6 +195,6 @@ void Strategy::computeBestMove () {
     }
     _saveBestMove(best_mv);*/
     move best_mv;
-    _saveBestMove(findMoveMinMax(best_mv,2));
+    _saveBestMove(findMoveMinMax(best_mv,0));
 }
 
