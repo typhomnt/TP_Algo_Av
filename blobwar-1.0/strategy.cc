@@ -104,7 +104,7 @@ move& Strategy::findMoveMinMax(move& mv, int profondeur){
     vector<move> valid_moves;
     move best_mv_en;
     this->computeValidMoves(valid_moves);
-    std::cout << "Profondeur : " << profondeur << " Nbr coups valides " << valid_moves.size() << "joueur: "  << _current_player <<std::endl ;
+    //std::cout << "Profondeur : " << profondeur << " Nbr coups valides " << valid_moves.size() << "joueur: "  << _current_player <<std::endl ;
     if(profondeur <= 0){
 	score = std::numeric_limits<Sint32>::min();
 	for(vector<move>::iterator it = valid_moves.begin() ; it != valid_moves.end() ; ++it){
@@ -114,7 +114,7 @@ move& Strategy::findMoveMinMax(move& mv, int profondeur){
 	    if(forseenScore > score){
 		    score = forseenScore;
 		    mv = *it;
-		    std::cout << "Score : " << score << "joueur: "  << _current_player <<std::endl ; 
+		    //std::cout << "Score : " << score << "joueur: "  << _current_player <<std::endl ; 
 	    }
 	    /*if(!enemy){
 		if(forseenScore > score){
@@ -129,7 +129,7 @@ move& Strategy::findMoveMinMax(move& mv, int profondeur){
 		}
 		}*/
 	}
-	std::cout << "Score final : " << score << "joueur: "  << _current_player <<std::endl ; 
+	//std::cout << "Score final : " << score << "joueur: "  << _current_player <<std::endl ; 
 	return mv;
     }
     else {
@@ -144,16 +144,16 @@ move& Strategy::findMoveMinMax(move& mv, int profondeur){
 	    Strategy foresee(*this);
 	    foresee.applyMove(*it);
 	    foresee.change_current_player();
-	    foresee.change_enemy();
-	    Strategy compute(foresee);
+	    //foresee.change_enemy();
+	    //Strategy compute(foresee);
 	    //compute.change_current_player();
 	    //compute.change_enemy();
-	    compute.applyMove(foresee.findMoveMinMax(best_mv_en, profondeur - 1));
-	    forseenScore = compute.estimateCurrentScore();
-	    std::cout << "Score en : " << forseenScore << "joueur: "  << _current_player <<std::endl ; 
+	    foresee.applyMove(foresee.findMoveMinMax(best_mv_en, profondeur - 1));
+	    forseenScore = foresee.estimateCurrentScore();
+	    //std::cout << "Score en : " << forseenScore << "joueur: "  << _current_player <<std::endl ; 
 	    if(forseenScore < score){
 		score = forseenScore;
-		std::cout << "Score origin : " << score << "joueur: "  << _current_player <<std::endl ; 
+		//std::cout << "Score origin : " << score << "joueur: "  << _current_player <<std::endl ; 
 		mv = *it;
 	    }
 		/*if(!enemy){
@@ -169,7 +169,7 @@ move& Strategy::findMoveMinMax(move& mv, int profondeur){
 		}
 		}*/
 	}
-	std::cout << "Score final origin : " << score << "joueur: "  << _current_player <<std::endl ; 
+	//std::cout << "Score final origin : " << score << "joueur: "  << _current_player <<std::endl ; 
 	return mv;
     }
     
@@ -195,6 +195,11 @@ void Strategy::computeBestMove () {
     }
     _saveBestMove(best_mv);*/
     move best_mv;
-    _saveBestMove(findMoveMinMax(best_mv,0));
+    int profondeur = 0;
+    while(true){
+	std::cout << "Profondeur : " << profondeur << std::endl ;
+	_saveBestMove(findMoveMinMax(best_mv,profondeur));
+	profondeur++;
+    }
 }
 
