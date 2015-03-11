@@ -4,6 +4,7 @@
 #include "common.h"
 #include "bidiarray.h"
 #include "move.h"
+#include <limits>
 
 
 
@@ -39,7 +40,7 @@ public:
     {
 	nb_blob1 = 0;
 	nb_blob2 = 0;
-	enemy = false;
+	alpha = std::numeric_limits<Sint32>::max();
 	for(int i = 0 ; i < 8 ; i++){
 	    for(int j = 0 ; j < 8 ; j++){
 		if(_blobs.get(i,j) == 0)
@@ -54,7 +55,7 @@ public:
     
         // Copy constructor
     Strategy (const Strategy& St)
-	: _blobs(St._blobs), _holes(St._holes),_current_player(St._current_player), nb_blob1(St.nb_blob1), nb_blob2(St.nb_blob2), enemy(St.enemy)  
+	: _blobs(St._blobs), _holes(St._holes),_current_player(St._current_player), nb_blob1(St.nb_blob1), nb_blob2(St.nb_blob2), alpha(St.alpha)  
         {}
     
         // Destructor
@@ -89,11 +90,9 @@ public:
 
     void change_current_player();
 
-    bool enemy ;
-
-    void change_enemy();
+    move& findMoveAlphaBeta(move& mv, int profondeur);
     
-    
+    Sint32 alpha ;
 };
 
 #endif

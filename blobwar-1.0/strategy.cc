@@ -1,6 +1,4 @@
 #include "strategy.h"
-#include <limits>
-
 void Strategy::applyMove (const move& mv) {
     //first check if we need to create a new blob or to move an old one
     if (((mv.ox - mv.nx)*(mv.ox - mv.nx)<=1)&&((mv.oy - mv.ny)*(mv.oy - mv.ny)<=1)) {
@@ -89,14 +87,52 @@ void Strategy::change_current_player(){
     }
 }
 
-void Strategy::change_enemy(){
-    if(enemy){
-	enemy = false;
+
+move& Strategy::findMoveAlphaBeta(move& mv, int profondeur){
+    Sint32 score;
+    Sint32 forseenScore ;
+    vector<move> valid_moves;
+    move best_mv_en;
+    this->computeValidMoves(valid_moves);
+    if(profondeur <= 0){
+	score = std::numeric_limits<Sint32>::min();
+	for(vector<move>::iterator it = valid_moves.begin() ; it != valid_moves.end() ; ++it){
+	    Strategy foresee(*this);
+	    foresee.applyMove(*it);
+	    forseenScore = foresee.estimateCurrentScore();
+	    if(this->alpha <= forseenScore){
+		mv = *it ;
+		return mv;
+	    }
+	    if(forseenScore > score){
+		score = forseenScore;
+		this->alpha = score;
+		mv = *it;
+	    }
+	}
+	return mv;
     }
-    else{
-	enemy = true;
+    else {
+	score =  std::numeric_limits<Sint32>::max();
+	for(vector<move>::iterator it = valid_moves.begin() ; it != valid_moves.end() ; ++it){
+	    Strategy foresee(*this);
+	    foresee.applyMove(*it);
+	    foresee.change_current_player();
+	    foresee.applyMove(foresee.findMoveAlphaBeta(best_mv_en, profondeur - 1));
+	    if(this->alpha < foresee.alpha)
+		break;
+	    this->alpha = foresee.alpha;
+	    forseenScore = foresee.estimateCurrentScore();
+	    if(forseenScore < score){
+		score = forseenScore;
+		mv = *it;
+	    }
+	}
+	return mv;
     }
 }
+    
+
 
 move& Strategy::findMoveMinMax(move& mv, int profondeur){
     Sint32 score;
@@ -156,18 +192,6 @@ move& Strategy::findMoveMinMax(move& mv, int profondeur){
 		//std::cout << "Score origin : " << score << "joueur: "  << _current_player <<std::endl ; 
 		mv = *it;
 	    }
-		/*if(!enemy){
-		if(forseenScore < score){
-		    score = forseenScore;
-		    mv = *it;
-		}
-	    }
-	    else {
-		if(forseenScore < score){
-		    score = forseenScore;
-		    mv = *it;
-		}
-		}*/
 	}
 	//std::cout << "Score final origin : " << score << "joueur: "  << _current_player <<std::endl ; 
 	return mv;
@@ -198,7 +222,7 @@ void Strategy::computeBestMove () {
     int profondeur = 0;
     while(true){
 	std::cout << "Profondeur : " << profondeur << std::endl ;
-	_saveBestMove(findMoveMinMax(best_mv,profondeur));
+	_saveBestMove(findMoveAlphaBeta(best_mv,profondeur));
 	profondeur++;
     }
 }
