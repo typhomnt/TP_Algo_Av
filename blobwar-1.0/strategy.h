@@ -29,6 +29,8 @@ private:
     //! Multiple call can be done each turn,
     //! Only the last move saved will be used.
     void (*_saveBestMove)(move&);
+    
+    Sint32 nb_blobs_adv();
 
 public:
         // Constructor from a current situation
