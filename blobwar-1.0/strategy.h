@@ -39,8 +39,7 @@ private:
 
     Sint32 min_max(int prof, Uint16 tour);
 
-    std::list< std::vector<int> > apply_move_saving_mods(Uint16 player, move& mv, int& nb_blobs1_, int& nb_blobs2_);
-    void restore_mods(std::list< std::vector<int> > modifs, int nb_blobs1_, int nb_blobs2_);
+    std::list< std::vector<int> > apply_move_saving_mods(move& mv);
 
     void apply_relative_move (Uint16 player, const move& mv);
     vector<move>& compute_relative_valid_moves (Sint16 player, vector<move>& valid_moves) const;
