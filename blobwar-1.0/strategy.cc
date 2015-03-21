@@ -239,20 +239,22 @@ Sint32 Strategy::min_max(int prof, Uint16 tour){
                 (tour != _current_player && nb_blobs((_current_player+1)%2) == 0)) {
                 return best_score;
             } else {
-                Strategy foresee(*this);
-                return foresee.min_max(prof-1, (tour+1)%2);
+                return this->min_max(prof-1, (tour+1)%2);
             }
         }
 
         for(vector<move>::iterator curr_move = valid_moves.begin() ; curr_move != valid_moves.end() ; ++curr_move){
             Sint32 curr_score;
 
-            Strategy foresee(*this);
-            foresee.apply_relative_move(tour, *curr_move);
-            curr_score = foresee.min_max(prof-1, (tour+1)%2);
+            //Strategy foresee(*this);
+            int nb_blobs1_, nb_blobs2_;
+            std::list< std::vector<int> > modifs = apply_move_saving_mods(tour, *curr_move, nb_blobs1_, nb_blobs2_);
+            //foresee.apply_relative_move(tour, *curr_move);
+            curr_score = this->min_max(prof-1, (tour+1)%2);
             if(better_score(curr_score, best_score)){
                 best_score = curr_score;
             }
+            restore_mods(modifs, nb_blobs1_, nb_blobs2_);
         }
 
         return best_score;
@@ -287,13 +289,13 @@ std::list< std::vector<int> > Strategy::apply_move_saving_mods(Uint16 player, mo
         v.push_back(_blobs.get(mv.ox, mv.oy));
         l.push_back(v);
 
-        _blobs.set(mv.ox, mv.oy, -1);
-
         v.clear();
         v.push_back(mv.nx);
         v.push_back(mv.ny);
         v.push_back(_blobs.get(mv.nx, mv.ny));
         l.push_back(v);
+
+        _blobs.set(mv.ox, mv.oy, -1);
 
         _blobs.set(mv.nx, mv.ny, player);
     }
@@ -349,14 +351,17 @@ move& Strategy::findMoveMinMax(move& mv, int prof){
     for(vector<move>::iterator curr_move = valid_moves.begin() ; curr_move != valid_moves.end() ; ++curr_move){
         Sint32 curr_score;
 
-        Strategy foresee(*this);
-        foresee.apply_relative_move(tour, *curr_move);
-        curr_score = foresee.min_max(prof-1, (tour+1)%2);
+        //Strategy foresee(*this);
+        int nb_blobs1_, nb_blobs2_;
+        std::list< std::vector<int> > modifs = apply_move_saving_mods(tour, *curr_move, nb_blobs1_, nb_blobs2_);
+        //foresee.apply_relative_move(tour, *curr_move);
+        curr_score = this->min_max(prof-1, (tour+1)%2);
         if(better_score(curr_score, best_score)){
             best_score = curr_score;
             mv = *curr_move;
             std::cout << "Score prévu : " << best_score << std::endl;
         }
+        restore_mods(modifs, nb_blobs1_, nb_blobs2_);
     }
 
     return mv;
