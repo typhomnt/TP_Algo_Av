@@ -157,10 +157,9 @@ move& Strategy::findMoveMinMax(move& mv, int profondeur){
             Strategy foresee(*this);
             foresee.applyMove(*it);
             forseenScore = foresee.estimateCurrentScore();
-            if(forseenScore > score){
+            if(forseenScore > score || (forseenScore == score && foresee.nb_blobs_adv() < nb_blobs_opponent)){
                 score = forseenScore;
-                mv = *it;
-            } else if(forseenScore == score && this->nb_blobs_adv() > nb_blobs_opponent){
+                nb_blobs_opponent = foresee.nb_blobs_adv();
                 mv = *it;
             }
             //std::cout << "Score : " << score << "joueur: "  << _current_player <<std::endl ; 
@@ -178,11 +177,10 @@ move& Strategy::findMoveMinMax(move& mv, int profondeur){
             foresee.applyMove(foresee.findMoveMinMax(best_mv_en, profondeur - 1));
             forseenScore = foresee.estimateCurrentScore();
             //std::cout << "Score en : " << forseenScore << "joueur: "  << _current_player <<std::endl ; 
-            if(forseenScore < score){
+            if(forseenScore < score || (forseenScore == score && foresee.nb_blobs_adv() > nb_blobs_opponent)){
                 score = forseenScore;
+                nb_blobs_opponent = foresee.nb_blobs_adv();
                 //std::cout << "Score origin : " << score << "joueur: "  << _current_player <<std::endl ; 
-                mv = *it;
-            } else if(forseenScore == score && this->nb_blobs_adv() < nb_blobs_opponent){
                 mv = *it;
             }
         }
