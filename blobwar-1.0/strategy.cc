@@ -169,7 +169,7 @@ Sint32 Strategy::min_max(int prof, Uint16 tour){
 
     if(prof == 0){
         if ((tour == _current_player && nb_blobs(_current_player) == 0) || 
-                (tour != _current_player && nb_blobs((_current_player+1)%2) == 0)) {
+            (tour != _current_player && nb_blobs((_current_player+1)%2) == 0)) {
             return best_score;
         }
 
@@ -180,8 +180,8 @@ Sint32 Strategy::min_max(int prof, Uint16 tour){
         this->computeValidMoves(valid_moves);
 
         if(valid_moves.empty()){
-            if ((tour == _current_player && nb_blobs1 == 0) || 
-                (tour != _current_player && nb_blobs2 == 0)) {
+            if ((tour == _current_player && nb_blobs(_current_player) == 0) || 
+                (tour != _current_player && nb_blobs((_current_player+1)%2) == 0)) {
                 return best_score;
             } else {
                 return this->min_max(prof-1, (tour+1)%2);
