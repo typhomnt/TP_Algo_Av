@@ -148,6 +148,14 @@ bool sup(int x, int y){
     return x > y;
 }
 
+Sint32 Strategy::nb_blobs(Uint16 player){
+    if(player == 0){
+        return nb_blobs1;
+    } else {
+        return nb_blobs2;
+    }
+}
+
 Sint32 Strategy::min_max(int prof, Uint16 tour){
     bool (*better_score)(int, int);
     Sint32 best_score;
@@ -160,8 +168,8 @@ Sint32 Strategy::min_max(int prof, Uint16 tour){
     }
 
     if(prof == 0){
-        if ((tour == _current_player && nb_blobs1 == 0) || 
-                (tour != _current_player && nb_blobs2 == 0)) {
+        if ((tour == _current_player && nb_blobs(_current_player) == 0) || 
+                (tour != _current_player && nb_blobs((_current_player+1)%2) == 0)) {
             return best_score;
         }
 
@@ -298,10 +306,10 @@ void Strategy::computeBestMove () {
     }
     _saveBestMove(best_mv);*/
     move best_mv;
-    int profondeur = 0;
+    int profondeur = 1;
     while(true){
 	std::cout << "Profondeur : " << profondeur << std::endl ;
-	_saveBestMove(findMoveAlphaBeta(best_mv,profondeur));
+	_saveBestMove(findMoveMinMax(best_mv,profondeur));
 	profondeur++;
     }
 }
