@@ -113,6 +113,27 @@ vector<move>& Strategy::computeValidMoves (vector<move>& valid_moves) const {
 }
 
 
+vector<move>& Strategy::compute_relative_valid_moves (Sint16 player, vector<move>& valid_moves) const {
+    
+    move mv(0,0,0,0);
+    //iterate on starting position
+    for(mv.ox = 0 ; mv.ox < 8 ; mv.ox++) {
+        for(mv.oy = 0 ; mv.oy < 8 ; mv.oy++) {
+            if (_blobs.get(mv.ox, mv.oy) == (int) player) {
+                //iterate on possible destinations
+                for(mv.nx = std::max(0,mv.ox-2) ; mv.nx <= std::min(7,mv.ox+2) ; mv.nx++) {
+                    for(mv.ny = std::max(0,mv.oy-2) ; mv.ny <= std::min(7,mv.oy+2) ; mv.ny++) {
+                        if (_holes.get(mv.nx, mv.ny)) continue;
+                        if (_blobs.get(mv.nx, mv.ny) == -1) valid_moves.push_back(mv);
+                    }
+                }
+            }
+        }
+    }
+    return valid_moves;
+}
+
+
 void Strategy::change_current_player(){
     if(_current_player == 0){
 	_current_player = 1;
@@ -211,7 +232,7 @@ Sint32 Strategy::min_max(int prof, Uint16 tour){
 
     } else {
         vector<move> valid_moves;
-        this->computeValidMoves(valid_moves);
+        this->compute_relative_valid_moves(tour, valid_moves);
 
         if(valid_moves.empty()){
             if ((tour == _current_player && nb_blobs(_current_player) == 0) || 
@@ -251,7 +272,7 @@ move& Strategy::findMoveMinMax(move& mv, int prof){
     Sint32 best_score = numeric_limits<Sint32>::min();
 
     vector<move> valid_moves;
-    this->computeValidMoves(valid_moves);
+    this->compute_relative_valid_moves(tour, valid_moves);
 
     for(vector<move>::iterator curr_move = valid_moves.begin() ; curr_move != valid_moves.end() ; ++curr_move){
         Sint32 curr_score;
