@@ -35,27 +35,27 @@ void Strategy::applyMove (const move& mv) {
 
 void Strategy::incrBlob(Uint16 player){
     if(player == 0){
-	nb_blob1++;
+	nb_blobs1++;
     }
     else{
-	nb_blob2++;
+	nb_blobs2++;
     }
 }
 
 void Strategy::decrBlob(Uint16 player){
     if(player == 0){
-	nb_blob1--;
+	nb_blobs1--;
     }
     else{
-	nb_blob2--;
+	nb_blobs2--;
     }
 }
 
 Sint32 Strategy::estimateCurrentScore () const {
     if(_current_player == 0)
-	return nb_blob1 - nb_blob2 ;
+	return nb_blobs1 - nb_blobs2 ;
     else
-	return nb_blob2 - nb_blob1;
+	return nb_blobs2 - nb_blobs1;
 }
 
 vector<move>& Strategy::computeValidMoves (vector<move>& valid_moves) const {
@@ -90,9 +90,9 @@ void Strategy::change_current_player(){
 
 Sint32 Strategy::nb_blobs_adv(){
     if(_current_player == 0)
-        return nb_blob2;
+        return nb_blobs2;
     else
-        return nb_blob1;
+        return nb_blobs1;
 }
 
 
@@ -140,18 +140,95 @@ move& Strategy::findMoveAlphaBeta(move& mv, int profondeur){
     }
 }
     
+bool inf(int x, int y){
+    return x < y;
+}
 
+bool sup(int x, int y){
+    return x > y;
+}
 
-    Sint32 min_max(int prof){
-        return 0;
+Sint32 Strategy::min_max(int prof, Uint16 tour){
+    bool (*better_score)(int, int);
+    Sint32 best_score;
+    if (tour == _current_player){
+        better_score = &sup;
+        best_score = numeric_limits<Sint32>::min();
+    } else {
+        better_score = &inf;
+        best_score = numeric_limits<Sint32>::max();
     }
 
-    std::list< std::vector<int> > apply_move_saving_mods(move& mv){
-        std::list< std::vector<int> > l;
-        return l;
+    if(prof == 0){
+        if ((tour == _current_player && nb_blobs1 == 0) || 
+                (tour != _current_player && nb_blobs2 == 0)) {
+            return best_score;
+        }
+
+        return estimateCurrentScore();
+
+    } else {
+        vector<move> valid_moves;
+        this->computeValidMoves(valid_moves);
+
+        if(valid_moves.empty()){
+            if ((tour == _current_player && nb_blobs1 == 0) || 
+                (tour != _current_player && nb_blobs2 == 0)) {
+                return best_score;
+            } else {
+                return this->min_max(prof-1, (tour+1)%2);
+            }
+        }
+
+        for(vector<move>::iterator curr_move = valid_moves.begin() ; curr_move != valid_moves.end() ; ++curr_move){
+            Sint32 curr_score;
+
+            Strategy foresee(*this);
+            foresee.applyMove(*curr_move);
+            curr_score = foresee.min_max(prof-1, (tour+1)%2);
+            if(better_score(curr_score, best_score)){
+                best_score = curr_score;
+            }
+        }
+
+        return best_score;
+
     }
 
+}
 
+std::list< std::vector<int> > Strategy::apply_move_saving_mods(move& mv){
+    std::list< std::vector<int> > l;
+    return l;
+}
+
+move& Strategy::findMoveMinMax(move& mv, int prof){
+    Sint16 tour = _current_player;
+    bool (*better_score)(int, int) = &sup;
+    Sint32 best_score = numeric_limits<Sint32>::min();
+
+    vector<move> valid_moves;
+    this->computeValidMoves(valid_moves);
+
+    for(vector<move>::iterator curr_move = valid_moves.begin() ; curr_move != valid_moves.end() ; ++curr_move){
+        Sint32 curr_score;
+
+        Strategy foresee(*this);
+        foresee.applyMove(*curr_move);
+        curr_score = foresee.min_max(prof-1, (tour+1)%2);
+        if(better_score(curr_score, best_score)){
+            best_score = curr_score;
+            mv = *curr_move;
+        }
+    }
+
+    return mv;
+
+
+
+}
+
+/*
 move& Strategy::findMoveMinMax(move& mv, int profondeur){
     Sint32 score;
     Sint32 forseenScore ;
@@ -199,6 +276,7 @@ move& Strategy::findMoveMinMax(move& mv, int profondeur){
     }
 
 }
+*/
 
 void Strategy::computeBestMove () {
     /* //The following code find a valid move.

@@ -20,9 +20,9 @@ private:
     Uint16 _current_player;
     
     //number of P1's blobs
-    Sint32 nb_blob1;
+    Sint32 nb_blobs1;
     //number of P2's blobs
-    Sint32 nb_blob2;
+    Sint32 nb_blobs2;
     
 	
     
@@ -35,7 +35,7 @@ private:
     Sint32 nb_blobs_adv();
 
 
-    Sint32 min_max(int prof);
+    Sint32 min_max(int prof, Uint16 tour);
 
     std::list< std::vector<int> > apply_move_saving_mods(move& mv);
 
@@ -48,15 +48,15 @@ public:
               void (*saveBestMove)(move&))
             : _blobs(blobs),_holes(holes), _current_player(current_player), _saveBestMove(saveBestMove)
     {
-	nb_blob1 = 0;
-	nb_blob2 = 0;
+	nb_blobs1 = 0;
+	nb_blobs2 = 0;
 	alpha = std::numeric_limits<Sint32>::max();
 	for(int i = 0 ; i < 8 ; i++){
 	    for(int j = 0 ; j < 8 ; j++){
 		if(_blobs.get(i,j) == 0)
-		    nb_blob1++;
+		    nb_blobs1++;
 		if(_blobs.get(i,j) == 1)
-		    nb_blob2++;
+		    nb_blobs2++;
 	    }
 	}
     }
@@ -65,7 +65,7 @@ public:
     
         // Copy constructor
     Strategy (const Strategy& St)
-	: _blobs(St._blobs), _holes(St._holes),_current_player(St._current_player), nb_blob1(St.nb_blob1), nb_blob2(St.nb_blob2), alpha(St.alpha)  
+	: _blobs(St._blobs), _holes(St._holes),_current_player(St._current_player), nb_blobs1(St.nb_blobs1), nb_blobs2(St.nb_blobs2), alpha(St.alpha)  
         {}
     
         // Destructor
