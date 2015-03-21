@@ -35,6 +35,8 @@ private:
     Sint32 nb_blobs_adv();
 
 
+    Sint32 nb_blobs(Uint16 player);
+
     Sint32 min_max(int prof, Uint16 tour);
 
     std::list< std::vector<int> > apply_move_saving_mods(move& mv);
