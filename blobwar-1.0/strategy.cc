@@ -184,7 +184,8 @@ Sint32 Strategy::min_max(int prof, Uint16 tour){
                 (tour != _current_player && nb_blobs((_current_player+1)%2) == 0)) {
                 return best_score;
             } else {
-                return this->min_max(prof-1, (tour+1)%2);
+                Strategy foresee(*this);
+                return foresee.min_max(prof-1, (tour+1)%2);
             }
         }
 
