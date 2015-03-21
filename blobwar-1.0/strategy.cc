@@ -261,10 +261,82 @@ Sint32 Strategy::min_max(int prof, Uint16 tour){
 
 }
 
-std::list< std::vector<int> > Strategy::apply_move_saving_mods(move& mv){
+std::list< std::vector<int> > Strategy::apply_move_saving_mods(Uint16 player, move& mv, int& nb_blobs1_, int& nb_blobs2_){
     std::list< std::vector<int> > l;
+    std::vector<int> v(3, 0);
+
+    nb_blobs1_ = nb_blobs1;
+    nb_blobs2_ = nb_blobs2;
+
+    //first check if we need to create a new blob or to move an old one
+    //On pourrait utiliser la valeur absolue
+    if (((mv.ox - mv.nx)*(mv.ox - mv.nx)<=1)&&((mv.oy - mv.ny)*(mv.oy - mv.ny)<=1)) {
+        //it's a copy 
+        v.push_back(mv.nx);
+        v.push_back(mv.ny);
+        v.push_back(_blobs.get(mv.nx, mv.ny));
+        l.push_back(v);
+        _blobs.set(mv.nx, mv.ny, player);
+        incrBlob( player);
+    }
+    else{
+        //it's a move
+        v.clear();
+        v.push_back(mv.ox);
+        v.push_back(mv.oy);
+        v.push_back(_blobs.get(mv.ox, mv.oy));
+        l.push_back(v);
+
+        _blobs.set(mv.ox, mv.oy, -1);
+
+        v.clear();
+        v.push_back(mv.nx);
+        v.push_back(mv.ny);
+        v.push_back(_blobs.get(mv.nx, mv.ny));
+        l.push_back(v);
+
+        _blobs.set(mv.nx, mv.ny, player);
+    }
+
+    for(Sint8 i = -1 ; i < 2 ; i++)
+        for(Sint8 j = -1 ; j < 2 ; j++) {
+            if (mv.nx+i < 0) continue;
+            if (mv.nx+i > 7) continue;
+            if (mv.ny+j < 0) continue;
+            if (mv.ny+j > 7) continue;
+            if ((_blobs.get(mv.nx+i, mv.ny+j)!=-1)&&(_blobs.get(mv.nx+i, mv.ny+j)!=player)) {
+                v.clear();
+                v.push_back(mv.nx+i);
+                v.push_back(mv.ny+j);
+                v.push_back(_blobs.get(mv.nx+i, mv.ny+j));
+                l.push_back(v);
+
+                _blobs.set(mv.nx+i, mv.ny+j, player);
+
+                incrBlob(player);
+                if(player == 0) {
+                    decrBlob(player + 1);
+                } 
+                else {
+                    decrBlob(0);
+                }
+            }
+        }
+
     return l;
 }
+
+
+
+void Strategy::restore_mods(std::list< std::vector<int> > modifs, int nb_blobs1_, int nb_blobs2_){
+    nb_blobs1 = nb_blobs1_;
+    nb_blobs2 = nb_blobs2_;
+    for(std::list< std::vector <int> >::iterator modif = modifs.begin() ; modif != modifs.end() ; ++modif){
+        _blobs.set((*modif)[0], (*modif)[1], (*modif)[2]);
+    }
+
+}
+
 
 move& Strategy::findMoveMinMax(move& mv, int prof){
     Sint16 tour = _current_player;
