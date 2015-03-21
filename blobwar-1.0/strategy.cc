@@ -261,11 +261,6 @@ Sint32 Strategy::min_max(int prof, Uint16 tour){
 
 }
 
-std::list< std::vector<int> > Strategy::apply_move_saving_mods(move& mv){
-    std::list< std::vector<int> > l;
-    return l;
-}
-
 move& Strategy::findMoveMinMax(move& mv, int prof){
     Sint16 tour = _current_player;
     bool (*better_score)(int, int) = &sup;
