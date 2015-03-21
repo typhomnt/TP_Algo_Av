@@ -37,14 +37,16 @@ private:
 
     Sint32 nb_blobs(Uint16 player);
 
+    // Calcule le score prévu par MinMax avec une profondeur prof
     Sint32 min_max(int prof, Uint16 tour);
 
+    // fonctions tenant compte du joueur courant
     void apply_relative_move (Uint16 player, const move& mv);
     vector<move>& compute_relative_valid_moves (Sint16 player, vector<move>& valid_moves) const;
 
 
 public:
-        // Constructor from a current situation
+    // Constructor from a current situation
     Strategy (bidiarray<Sint16>& blobs, 
               const bidiarray<bool>& holes,
               const Uint16 current_player,
@@ -99,6 +101,7 @@ public:
     
     void decrBlob(Uint16 player);
 
+    // fonction qui calcule le mouvement en appliquant MinMax
     move& findMoveMinMax(move& mv, int profondeur);
 
     void change_current_player();
