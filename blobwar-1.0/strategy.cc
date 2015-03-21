@@ -142,6 +142,16 @@ move& Strategy::findMoveAlphaBeta(move& mv, int profondeur){
     
 
 
+    Sint32 min_max(int prof){
+        return 0;
+    }
+
+    std::list< std::vector<int> > apply_move_saving_mods(move& mv){
+        std::list< std::vector<int> > l;
+        return l;
+    }
+
+
 move& Strategy::findMoveMinMax(move& mv, int profondeur){
     Sint32 score;
     Sint32 forseenScore ;
@@ -152,7 +162,7 @@ move& Strategy::findMoveMinMax(move& mv, int profondeur){
     //std::cout << "Profondeur : " << profondeur << " Nbr coups valides " << valid_moves.size() << "joueur: "  << _current_player <<std::endl ;
     if(profondeur <= 0){
         score = std::numeric_limits<Sint32>::min();
-        nb_blobs_opponent =  std::numeric_limits<Sint32>::min();
+        nb_blobs_opponent =  std::numeric_limits<Sint32>::max();
         for(vector<move>::iterator it = valid_moves.begin() ; it != valid_moves.end() ; ++it){
             Strategy foresee(*this);
             foresee.applyMove(*it);
@@ -169,7 +179,7 @@ move& Strategy::findMoveMinMax(move& mv, int profondeur){
     }
     else {
         score =  std::numeric_limits<Sint32>::max();
-        nb_blobs_opponent =  std::numeric_limits<Sint32>::max();
+        nb_blobs_opponent =  std::numeric_limits<Sint32>::min();
         for(vector<move>::iterator it = valid_moves.begin() ; it != valid_moves.end() ; ++it){
             Strategy foresee(*this);
             foresee.applyMove(*it);

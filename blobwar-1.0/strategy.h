@@ -5,6 +5,7 @@
 #include "bidiarray.h"
 #include "move.h"
 #include <limits>
+#include <list>
 
 
 
@@ -30,7 +31,14 @@ private:
     //! Only the last move saved will be used.
     void (*_saveBestMove)(move&);
     
+
     Sint32 nb_blobs_adv();
+
+
+    Sint32 min_max(int prof);
+
+    std::list< std::vector<int> > apply_move_saving_mods(move& mv);
+
 
 public:
         // Constructor from a current situation
