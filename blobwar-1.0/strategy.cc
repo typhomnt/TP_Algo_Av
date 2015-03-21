@@ -33,6 +33,40 @@ void Strategy::applyMove (const move& mv) {
 
 }
 
+void Strategy::apply_relative_move (Uint16 player, const move& mv){
+    //first check if we need to create a new blob or to move an old one
+    //On pourrait utiliser la valeur absolue
+    if (((mv.ox - mv.nx)*(mv.ox - mv.nx)<=1)&&((mv.oy - mv.ny)*(mv.oy - mv.ny)<=1)) {
+	//it's a copy 
+	_blobs.set(mv.nx, mv.ny, player);
+	incrBlob( player);
+    }
+    else{
+	//it's a move
+    _blobs.set(mv.ox, mv.oy, -1);
+    _blobs.set(mv.nx, mv.ny, player);
+    }
+    
+    for(Sint8 i = -1 ; i < 2 ; i++)
+	for(Sint8 j = -1 ; j < 2 ; j++) {
+	    if (mv.nx+i < 0) continue;
+	    if (mv.nx+i > 7) continue;
+	    if (mv.ny+j < 0) continue;
+	    if (mv.ny+j > 7) continue;
+	    if ((_blobs.get(mv.nx+i, mv.ny+j)!=-1)&&(_blobs.get(mv.nx+i, mv.ny+j)!=player)) {
+		_blobs.set(mv.nx+i, mv.ny+j, player);
+		incrBlob(player);
+		if(player == 0) {
+		    decrBlob(player + 1);
+		} 
+		else {
+		    decrBlob(0);
+		}
+	    }
+	}
+
+}
+
 void Strategy::incrBlob(Uint16 player){
     if(player == 0){
 	nb_blobs1++;
@@ -193,7 +227,7 @@ Sint32 Strategy::min_max(int prof, Uint16 tour){
             Sint32 curr_score;
 
             Strategy foresee(*this);
-            foresee.applyMove(*curr_move);
+            foresee.apply_relative_move(tour, *curr_move);
             curr_score = foresee.min_max(prof-1, (tour+1)%2);
             if(better_score(curr_score, best_score)){
                 best_score = curr_score;
@@ -223,11 +257,12 @@ move& Strategy::findMoveMinMax(move& mv, int prof){
         Sint32 curr_score;
 
         Strategy foresee(*this);
-        foresee.applyMove(*curr_move);
+        foresee.apply_relative_move(tour, *curr_move);
         curr_score = foresee.min_max(prof-1, (tour+1)%2);
         if(better_score(curr_score, best_score)){
             best_score = curr_score;
             mv = *curr_move;
+            std::cout << "Score prévu : " << best_score << std::endl;
         }
     }
 

@@ -41,6 +41,8 @@ private:
 
     std::list< std::vector<int> > apply_move_saving_mods(move& mv);
 
+    void apply_relative_move (Uint16 player, const move& mv);
+
 
 public:
         // Constructor from a current situation
