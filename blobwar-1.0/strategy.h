@@ -5,6 +5,7 @@
 #include "bidiarray.h"
 #include "move.h"
 #include <limits>
+#include <list>
 
 
 
@@ -19,9 +20,9 @@ private:
     Uint16 _current_player;
     
     //number of P1's blobs
-    Sint32 nb_blob1;
+    Sint32 nb_blobs1;
     //number of P2's blobs
-    Sint32 nb_blob2;
+    Sint32 nb_blobs2;
     
 	
     
@@ -29,24 +30,38 @@ private:
     //! Multiple call can be done each turn,
     //! Only the last move saved will be used.
     void (*_saveBestMove)(move&);
+    
+
+    Sint32 nb_blobs_adv();
+
+
+    Sint32 nb_blobs(Uint16 player);
+
+    // Calcule le score prévu par MinMax avec une profondeur prof
+    Sint32 min_max(int prof, Uint16 tour);
+
+    // fonctions tenant compte du joueur courant
+    void apply_relative_move (Uint16 player, const move& mv);
+    vector<move>& compute_relative_valid_moves (Sint16 player, vector<move>& valid_moves) const;
+
 
 public:
-        // Constructor from a current situation
+    // Constructor from a current situation
     Strategy (bidiarray<Sint16>& blobs, 
               const bidiarray<bool>& holes,
               const Uint16 current_player,
               void (*saveBestMove)(move&))
             : _blobs(blobs),_holes(holes), _current_player(current_player), _saveBestMove(saveBestMove)
     {
-	nb_blob1 = 0;
-	nb_blob2 = 0;
+	nb_blobs1 = 0;
+	nb_blobs2 = 0;
 	alpha = std::numeric_limits<Sint32>::max();
 	for(int i = 0 ; i < 8 ; i++){
 	    for(int j = 0 ; j < 8 ; j++){
 		if(_blobs.get(i,j) == 0)
-		    nb_blob1++;
+		    nb_blobs1++;
 		if(_blobs.get(i,j) == 1)
-		    nb_blob2++;
+		    nb_blobs2++;
 	    }
 	}
     }
@@ -55,7 +70,7 @@ public:
     
         // Copy constructor
     Strategy (const Strategy& St)
-	: _blobs(St._blobs), _holes(St._holes),_current_player(St._current_player), nb_blob1(St.nb_blob1), nb_blob2(St.nb_blob2), alpha(St.alpha)  
+	: _blobs(St._blobs), _holes(St._holes),_current_player(St._current_player), nb_blobs1(St.nb_blobs1), nb_blobs2(St.nb_blobs2), alpha(St.alpha)  
         {}
     
         // Destructor
@@ -86,6 +101,7 @@ public:
     
     void decrBlob(Uint16 player);
 
+    // fonction qui calcule le mouvement en appliquant MinMax
     move& findMoveMinMax(move& mv, int profondeur);
 
     void change_current_player();
