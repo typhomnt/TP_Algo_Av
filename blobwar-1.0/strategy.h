@@ -40,6 +40,9 @@ private:
     // Calcule le score prévu par MinMax avec une profondeur prof
     Sint32 min_max(int prof, Uint16 tour);
 
+    // Calcule le score prévu par AlphaBeta avec une profondeur prof
+    Sint32 alpha_beta(int prof, Uint16 tour,Sint32 A, Sint32 B);
+
     // fonctions tenant compte du joueur courant
     void apply_relative_move (Uint16 player, const move& mv);
     vector<move>& compute_relative_valid_moves (Sint16 player, vector<move>& valid_moves) const;
@@ -55,7 +58,6 @@ public:
     {
 	nb_blobs1 = 0;
 	nb_blobs2 = 0;
-	alpha = std::numeric_limits<Sint32>::max();
 	for(int i = 0 ; i < 8 ; i++){
 	    for(int j = 0 ; j < 8 ; j++){
 		if(_blobs.get(i,j) == 0)
@@ -70,7 +72,7 @@ public:
     
         // Copy constructor
     Strategy (const Strategy& St)
-	: _blobs(St._blobs), _holes(St._holes),_current_player(St._current_player), nb_blobs1(St.nb_blobs1), nb_blobs2(St.nb_blobs2), alpha(St.alpha)  
+	: _blobs(St._blobs), _holes(St._holes),_current_player(St._current_player), nb_blobs1(St.nb_blobs1), nb_blobs2(St.nb_blobs2) 
         {}
     
         // Destructor
@@ -106,9 +108,8 @@ public:
 
     void change_current_player();
 
-    move& findMoveAlphaBeta(move& mv, int profondeur);
+    move& findMoveAlphaBeta(move& mv, int prof);
     
-    Sint32 alpha ;
 };
 
 #endif
