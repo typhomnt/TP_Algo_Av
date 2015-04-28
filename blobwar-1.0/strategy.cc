@@ -3,33 +3,33 @@ void Strategy::applyMove (const move& mv) {
     //first check if we need to create a new blob or to move an old one
     //On pourrait utiliser la valeur absolue
     if (((mv.ox - mv.nx)*(mv.ox - mv.nx)<=1)&&((mv.oy - mv.ny)*(mv.oy - mv.ny)<=1)) {
-	//it's a copy 
-	_blobs.set(mv.nx, mv.ny, _current_player);
-	incrBlob( _current_player);
+        //it's a copy 
+        _blobs.set(mv.nx, mv.ny, _current_player);
+        incrBlob( _current_player);
     }
     else{
-	//it's a move
-    _blobs.set(mv.ox, mv.oy, -1);
-    _blobs.set(mv.nx, mv.ny, _current_player);
+        //it's a move
+        _blobs.set(mv.ox, mv.oy, -1);
+        _blobs.set(mv.nx, mv.ny, _current_player);
     }
-    
+
     for(Sint8 i = -1 ; i < 2 ; i++)
-	for(Sint8 j = -1 ; j < 2 ; j++) {
-	    if (mv.nx+i < 0) continue;
-	    if (mv.nx+i > 7) continue;
-	    if (mv.ny+j < 0) continue;
-	    if (mv.ny+j > 7) continue;
-	    if ((_blobs.get(mv.nx+i, mv.ny+j)!=-1)&&(_blobs.get(mv.nx+i, mv.ny+j)!=_current_player)) {
-		_blobs.set(mv.nx+i, mv.ny+j, _current_player);
-		incrBlob(_current_player);
-		if(_current_player == 0) {
-		    decrBlob(_current_player + 1);
-		} 
-		else {
-		    decrBlob(0);
-		}
-	    }
-	}
+        for(Sint8 j = -1 ; j < 2 ; j++) {
+            if (mv.nx+i < 0) continue;
+            if (mv.nx+i > 7) continue;
+            if (mv.ny+j < 0) continue;
+            if (mv.ny+j > 7) continue;
+            if ((_blobs.get(mv.nx+i, mv.ny+j)!=-1)&&(_blobs.get(mv.nx+i, mv.ny+j)!=_current_player)) {
+                _blobs.set(mv.nx+i, mv.ny+j, _current_player);
+                incrBlob(_current_player);
+                if(_current_player == 0) {
+                    decrBlob(_current_player + 1);
+                } 
+                else {
+                    decrBlob(0);
+                }
+            }
+        }
 
 }
 
@@ -37,63 +37,63 @@ void Strategy::apply_relative_move (Uint16 player, const move& mv){
     //first check if we need to create a new blob or to move an old one
     //On pourrait utiliser la valeur absolue
     if (((mv.ox - mv.nx)*(mv.ox - mv.nx)<=1)&&((mv.oy - mv.ny)*(mv.oy - mv.ny)<=1)) {
-	//it's a copy 
-	_blobs.set(mv.nx, mv.ny, player);
-	incrBlob( player);
+        //it's a copy 
+        _blobs.set(mv.nx, mv.ny, player);
+        incrBlob( player);
     }
     else{
-	//it's a move
-    _blobs.set(mv.ox, mv.oy, -1);
-    _blobs.set(mv.nx, mv.ny, player);
+        //it's a move
+        _blobs.set(mv.ox, mv.oy, -1);
+        _blobs.set(mv.nx, mv.ny, player);
     }
-    
+
     for(Sint8 i = -1 ; i < 2 ; i++)
-	for(Sint8 j = -1 ; j < 2 ; j++) {
-	    if (mv.nx+i < 0) continue;
-	    if (mv.nx+i > 7) continue;
-	    if (mv.ny+j < 0) continue;
-	    if (mv.ny+j > 7) continue;
-	    if ((_blobs.get(mv.nx+i, mv.ny+j)!=-1)&&(_blobs.get(mv.nx+i, mv.ny+j)!=player)) {
-		_blobs.set(mv.nx+i, mv.ny+j, player);
-		incrBlob(player);
-		if(player == 0) {
-		    decrBlob(player + 1);
-		} 
-		else {
-		    decrBlob(0);
-		}
-	    }
-	}
+        for(Sint8 j = -1 ; j < 2 ; j++) {
+            if (mv.nx+i < 0) continue;
+            if (mv.nx+i > 7) continue;
+            if (mv.ny+j < 0) continue;
+            if (mv.ny+j > 7) continue;
+            if ((_blobs.get(mv.nx+i, mv.ny+j)!=-1)&&(_blobs.get(mv.nx+i, mv.ny+j)!=player)) {
+                _blobs.set(mv.nx+i, mv.ny+j, player);
+                incrBlob(player);
+                if(player == 0) {
+                    decrBlob(player + 1);
+                } 
+                else {
+                    decrBlob(0);
+                }
+            }
+        }
 
 }
 
 void Strategy::incrBlob(Uint16 player){
     if(player == 0){
-	nb_blobs1++;
+        nb_blobs1++;
     }
     else{
-	nb_blobs2++;
+        nb_blobs2++;
     }
 }
 
 void Strategy::decrBlob(Uint16 player){
     if(player == 0){
-	nb_blobs1--;
+        nb_blobs1--;
     }
     else{
-	nb_blobs2--;
+        nb_blobs2--;
     }
 }
 
 Sint32 Strategy::estimateCurrentScore () const {
     if(_current_player == 0)
-	return nb_blobs1 - nb_blobs2 ;
+        return nb_blobs1 - nb_blobs2 ;
     else
-	return nb_blobs2 - nb_blobs1;
+        return nb_blobs2 - nb_blobs1;
 }
 
 vector<move>& Strategy::computeValidMoves (vector<move>& valid_moves) const {
-    
+
     move mv(0,0,0,0);
     //iterate on starting position
     for(mv.ox = 0 ; mv.ox < 8 ; mv.ox++) {
@@ -114,7 +114,7 @@ vector<move>& Strategy::computeValidMoves (vector<move>& valid_moves) const {
 
 
 vector<move>& Strategy::compute_relative_valid_moves (Sint16 player, vector<move>& valid_moves) const {
-    
+
     move mv(0,0,0,0);
     //iterate on starting position
     for(mv.ox = 0 ; mv.ox < 8 ; mv.ox++) {
@@ -136,10 +136,10 @@ vector<move>& Strategy::compute_relative_valid_moves (Sint16 player, vector<move
 
 void Strategy::change_current_player(){
     if(_current_player == 0){
-	_current_player = 1;
+        _current_player = 1;
     }
     else {
-	_current_player = 0;
+        _current_player = 0;
     }
 }
 
@@ -152,49 +152,49 @@ Sint32 Strategy::nb_blobs_adv(){
 
 
 /*move& Strategy::findMoveAlphaBeta(move& mv, int profondeur){
-    Sint32 score;
-    Sint32 forseenScore ;
-    vector<move> valid_moves;
-    move best_mv_en;
-    this->computeValidMoves(valid_moves);
-    if(profondeur <= 0){
-	score = std::numeric_limits<Sint32>::min();
-	for(vector<move>::iterator it = valid_moves.begin() ; it != valid_moves.end() ; ++it){
-	    Strategy foresee(*this);
-	    foresee.applyMove(*it);
-	    forseenScore = foresee.estimateCurrentScore();
-	    if(this->alpha <= forseenScore){
-		mv = *it ;
-		return mv;
-	    }
-	    if(forseenScore > score){
-		score = forseenScore;
-		this->alpha = score;
-		mv = *it;
-	    }
-	}
-	return mv;
-    }
-    else {
-	score =  std::numeric_limits<Sint32>::max();
-	for(vector<move>::iterator it = valid_moves.begin() ; it != valid_moves.end() ; ++it){
-	    Strategy foresee(*this);
-	    foresee.applyMove(*it);
-	    foresee.change_current_player();
-	    foresee.applyMove(foresee.findMoveAlphaBeta(best_mv_en, profondeur - 1));
-	    if(this->alpha < foresee.alpha)
-		break;
-	    this->alpha = foresee.alpha;
-	    forseenScore = foresee.estimateCurrentScore();
-	    if(forseenScore < score){
-		score = forseenScore;
-		mv = *it;
-	    }
-	}
-	return mv;
-    }
-    }*/
-    
+  Sint32 score;
+  Sint32 forseenScore ;
+  vector<move> valid_moves;
+  move best_mv_en;
+  this->computeValidMoves(valid_moves);
+  if(profondeur <= 0){
+  score = std::numeric_limits<Sint32>::min();
+  for(vector<move>::iterator it = valid_moves.begin() ; it != valid_moves.end() ; ++it){
+  Strategy foresee(*this);
+  foresee.applyMove(*it);
+  forseenScore = foresee.estimateCurrentScore();
+  if(this->alpha <= forseenScore){
+  mv = *it ;
+  return mv;
+  }
+  if(forseenScore > score){
+  score = forseenScore;
+  this->alpha = score;
+  mv = *it;
+  }
+  }
+  return mv;
+  }
+  else {
+  score =  std::numeric_limits<Sint32>::max();
+  for(vector<move>::iterator it = valid_moves.begin() ; it != valid_moves.end() ; ++it){
+  Strategy foresee(*this);
+  foresee.applyMove(*it);
+  foresee.change_current_player();
+  foresee.applyMove(foresee.findMoveAlphaBeta(best_mv_en, profondeur - 1));
+  if(this->alpha < foresee.alpha)
+  break;
+  this->alpha = foresee.alpha;
+  forseenScore = foresee.estimateCurrentScore();
+  if(forseenScore < score){
+  score = forseenScore;
+  mv = *it;
+  }
+  }
+  return mv;
+  }
+  }*/
+
 bool inf(int x, int y){
     return x < y;
 }
@@ -226,7 +226,7 @@ Sint32 Strategy::alpha_beta(int prof, Uint16 tour,Sint32 A, Sint32 B){
 
     if(prof == 0){
         if ((tour == _current_player && nb_blobs(_current_player) == 0) || 
-            (tour != _current_player && nb_blobs((_current_player+1)%2) == 0)) {
+                (tour != _current_player && nb_blobs((_current_player+1)%2) == 0)) {
             return best_score;
         }
 
@@ -238,7 +238,7 @@ Sint32 Strategy::alpha_beta(int prof, Uint16 tour,Sint32 A, Sint32 B){
 
         if(valid_moves.empty()){
             if ((tour == _current_player && nb_blobs(_current_player) == 0) || 
-                (tour != _current_player && nb_blobs((_current_player+1)%2) == 0)) {
+                    (tour != _current_player && nb_blobs((_current_player+1)%2) == 0)) {
                 return best_score;
             } else {
                 Strategy foresee(*this);
@@ -251,33 +251,33 @@ Sint32 Strategy::alpha_beta(int prof, Uint16 tour,Sint32 A, Sint32 B){
 
             Strategy foresee(*this);
             foresee.apply_relative_move(tour, *curr_move);
-	     curr_score = foresee.alpha_beta(prof-1, (tour+1)%2,A,B);
-	    if(tour == _current_player){
-		if(alpha <= curr_score)
-		    alpha = curr_score;
-		if(alpha >= beta)
-		    return beta;
-		
-	    }
+            curr_score = foresee.alpha_beta(prof-1, (tour+1)%2,A,B);
+            if(tour == _current_player){
+                if(alpha <= curr_score)
+                    alpha = curr_score;
+                if(alpha >= beta)
+                    return beta;
+
+            }
             else{
-		if(beta >= curr_score)
-		    beta = curr_score;
-		if(alpha >= beta)
-		    return alpha;
-	    }
+                if(beta >= curr_score)
+                    beta = curr_score;
+                if(alpha >= beta)
+                    return alpha;
+            }
         }
-	if(tour == _current_player){
-	    return alpha;
-	}
-	else{
-	    return beta;
-	}
+        if(tour == _current_player){
+            return alpha;
+        }
+        else{
+            return beta;
+        }
     }
 
 }
 
 move& Strategy::findMoveAlphaBeta(move& mv, int prof){
-    
+
     Sint16 tour = _current_player;
     bool (*better_score)(int, int) = &sup;
     Sint32 best_score = numeric_limits<Sint32>::min();
@@ -316,7 +316,7 @@ Sint32 Strategy::min_max(int prof, Uint16 tour){
 
     if(prof == 0){
         if ((tour == _current_player && nb_blobs(_current_player) == 0) || 
-            (tour != _current_player && nb_blobs((_current_player+1)%2) == 0)) {
+                (tour != _current_player && nb_blobs((_current_player+1)%2) == 0)) {
             return best_score;
         }
 
@@ -328,7 +328,7 @@ Sint32 Strategy::min_max(int prof, Uint16 tour){
 
         if(valid_moves.empty()){
             if ((tour == _current_player && nb_blobs(_current_player) == 0) || 
-                (tour != _current_player && nb_blobs((_current_player+1)%2) == 0)) {
+                    (tour != _current_player && nb_blobs((_current_player+1)%2) == 0)) {
                 return best_score;
             } else {
                 Strategy foresee(*this);
@@ -379,80 +379,80 @@ move& Strategy::findMoveMinMax(move& mv, int prof){
 }
 
 /*
-move& Strategy::findMoveMinMax(move& mv, int profondeur){
-    Sint32 score;
-    Sint32 forseenScore ;
-    Sint32 nb_blobs_opponent;
-    vector<move> valid_moves;
-    move best_mv_en;
-    this->computeValidMoves(valid_moves);
-    //std::cout << "Profondeur : " << profondeur << " Nbr coups valides " << valid_moves.size() << "joueur: "  << _current_player <<std::endl ;
-    if(profondeur <= 0){
-        score = std::numeric_limits<Sint32>::min();
-        nb_blobs_opponent =  std::numeric_limits<Sint32>::max();
-        for(vector<move>::iterator it = valid_moves.begin() ; it != valid_moves.end() ; ++it){
-            Strategy foresee(*this);
-            foresee.applyMove(*it);
-            forseenScore = foresee.estimateCurrentScore();
-            if(forseenScore > score || (forseenScore == score && foresee.nb_blobs_adv() < nb_blobs_opponent)){
-                score = forseenScore;
-                nb_blobs_opponent = foresee.nb_blobs_adv();
-                mv = *it;
-            }
-            //std::cout << "Score : " << score << "joueur: "  << _current_player <<std::endl ; 
-        }
-    //std::cout << "Score final : " << score << "joueur: "  << _current_player <<std::endl ; 
-    return mv;
-    }
-    else {
-        score =  std::numeric_limits<Sint32>::max();
-        nb_blobs_opponent =  std::numeric_limits<Sint32>::min();
-        for(vector<move>::iterator it = valid_moves.begin() ; it != valid_moves.end() ; ++it){
-            Strategy foresee(*this);
-            foresee.applyMove(*it);
-            foresee.change_current_player();
-            foresee.applyMove(foresee.findMoveMinMax(best_mv_en, profondeur - 1));
-            forseenScore = foresee.estimateCurrentScore();
-            //std::cout << "Score en : " << forseenScore << "joueur: "  << _current_player <<std::endl ; 
-            if(forseenScore < score || (forseenScore == score && foresee.nb_blobs_adv() > nb_blobs_opponent)){
-                score = forseenScore;
-                nb_blobs_opponent = foresee.nb_blobs_adv();
-                //std::cout << "Score origin : " << score << "joueur: "  << _current_player <<std::endl ; 
-                mv = *it;
-            }
-        }
-        //std::cout << "Score final origin : " << score << "joueur: "  << _current_player <<std::endl ; 
-        return mv;
-    }
+   move& Strategy::findMoveMinMax(move& mv, int profondeur){
+   Sint32 score;
+   Sint32 forseenScore ;
+   Sint32 nb_blobs_opponent;
+   vector<move> valid_moves;
+   move best_mv_en;
+   this->computeValidMoves(valid_moves);
+//std::cout << "Profondeur : " << profondeur << " Nbr coups valides " << valid_moves.size() << "joueur: "  << _current_player <<std::endl ;
+if(profondeur <= 0){
+score = std::numeric_limits<Sint32>::min();
+nb_blobs_opponent =  std::numeric_limits<Sint32>::max();
+for(vector<move>::iterator it = valid_moves.begin() ; it != valid_moves.end() ; ++it){
+Strategy foresee(*this);
+foresee.applyMove(*it);
+forseenScore = foresee.estimateCurrentScore();
+if(forseenScore > score || (forseenScore == score && foresee.nb_blobs_adv() < nb_blobs_opponent)){
+score = forseenScore;
+nb_blobs_opponent = foresee.nb_blobs_adv();
+mv = *it;
+}
+//std::cout << "Score : " << score << "joueur: "  << _current_player <<std::endl ; 
+}
+//std::cout << "Score final : " << score << "joueur: "  << _current_player <<std::endl ; 
+return mv;
+}
+else {
+score =  std::numeric_limits<Sint32>::max();
+nb_blobs_opponent =  std::numeric_limits<Sint32>::min();
+for(vector<move>::iterator it = valid_moves.begin() ; it != valid_moves.end() ; ++it){
+Strategy foresee(*this);
+foresee.applyMove(*it);
+foresee.change_current_player();
+foresee.applyMove(foresee.findMoveMinMax(best_mv_en, profondeur - 1));
+forseenScore = foresee.estimateCurrentScore();
+//std::cout << "Score en : " << forseenScore << "joueur: "  << _current_player <<std::endl ; 
+if(forseenScore < score || (forseenScore == score && foresee.nb_blobs_adv() > nb_blobs_opponent)){
+score = forseenScore;
+nb_blobs_opponent = foresee.nb_blobs_adv();
+//std::cout << "Score origin : " << score << "joueur: "  << _current_player <<std::endl ; 
+mv = *it;
+}
+}
+//std::cout << "Score final origin : " << score << "joueur: "  << _current_player <<std::endl ; 
+return mv;
+}
 
 }
 */
 
 void Strategy::computeBestMove () {
     /* //The following code find a valid move.
-    Sint32 score = this->estimateCurrentScore();
-    Sint32 forseenScore ;
-    vector<move> valid_moves;
-    this->computeValidMoves(valid_moves);
-    move best_mv;
+       Sint32 score = this->estimateCurrentScore();
+       Sint32 forseenScore ;
+       vector<move> valid_moves;
+       this->computeValidMoves(valid_moves);
+       move best_mv;
     //_saveBestMove(*valid_moves.begin());
     for(vector<move>::iterator it = valid_moves.begin() ; it != valid_moves.end() ; ++it){
-	//surchager =
-	Strategy foresee(*this);
-	foresee.applyMove(*it);
-	forseenScore = foresee.estimateCurrentScore();
-	if(forseenScore > score){
-	    score = forseenScore;
-	    best_mv = *it;
-	}	
+    //surchager =
+    Strategy foresee(*this);
+    foresee.applyMove(*it);
+    forseenScore = foresee.estimateCurrentScore();
+    if(forseenScore > score){
+    score = forseenScore;
+    best_mv = *it;
+    }	
     }
     _saveBestMove(best_mv);*/
     move best_mv;
     int profondeur = 1;
     while(true){
-	std::cout << "Profondeur : " << profondeur << std::endl ;
-	_saveBestMove(findMoveAlphaBeta(best_mv,profondeur));
-	profondeur++;
+        std::cout << "Profondeur : " << profondeur << std::endl ;
+        _saveBestMove(findMoveAlphaBeta(best_mv,profondeur));
+        profondeur++;
     }
 }
 
