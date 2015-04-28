@@ -242,7 +242,7 @@ Sint32 Strategy::alpha_beta(int prof, Uint16 tour,Sint32 A, Sint32 B){
                 return best_score;
             } else {
                 Strategy foresee(*this);
-                return foresee.alpha_beta(prof-1, (tour+1)%2,A,B);
+                return foresee.alpha_beta(prof-1, (tour+1)%2,alpha,beta);
             }
         }
 
@@ -251,7 +251,7 @@ Sint32 Strategy::alpha_beta(int prof, Uint16 tour,Sint32 A, Sint32 B){
 
             Strategy foresee(*this);
             foresee.apply_relative_move(tour, *curr_move);
-            curr_score = foresee.alpha_beta(prof-1, (tour+1)%2,A,B);
+            curr_score = foresee.alpha_beta(prof-1, (tour+1)%2,alpha,beta);
 
             if(better_score(curr_score, best_score)){
                 best_score = curr_score;
