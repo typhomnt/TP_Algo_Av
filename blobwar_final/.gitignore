@@ -1,0 +1,8 @@
+*.o
+*.swp
+*~
+*.out
+blobwar
+launchStrategy
+server/blobwar_server
+network.cfg
