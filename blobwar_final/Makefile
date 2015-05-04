@@ -7,7 +7,7 @@ OBJS_launchComputation = launchStrategy.o strategy.o bidiarray.o shmem.o
 
 LIBS = -lSDL_image -lSDL_ttf -lm `sdl-config --libs` -lSDL_net -lpthread
 
-CFLAGS = -Wall -Werror -O3 `sdl-config --cflags`  -Wno-strict-aliasing -pg
+CFLAGS = -Wall -Werror -O3 -fopenmp `sdl-config --cflags`  -Wno-strict-aliasing -pg
 CC = g++
 
 # $(sort) remove duplicate object

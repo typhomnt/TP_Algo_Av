@@ -48,9 +48,7 @@ void Strategy::apply_relative_move (Uint16 player, const move& mv){
         _blobs.set(mv.nx, mv.ny, player);
     }
 
-    #pragma omp parallel for
     for(Sint8 i = -1 ; i < 2 ; i++)
-        #pragma omp parallel for
         for(Sint8 j = -1 ; j < 2 ; j++) {
             if (mv.nx+i < 0) continue;
             if (mv.nx+i > 7) continue;
@@ -58,14 +56,11 @@ void Strategy::apply_relative_move (Uint16 player, const move& mv){
             if (mv.ny+j > 7) continue;
             if ((_blobs.get(mv.nx+i, mv.ny+j)!=-1)&&(_blobs.get(mv.nx+i, mv.ny+j)!=player)) {
                 _blobs.set(mv.nx+i, mv.ny+j, player);
-                #pragma omp critical(incrBlob)
                 incrBlob(player);
                 if(player == 0) {
-                    #pragma omp critical(decrBlob0)
                     decrBlob(player + 1);
                 } 
                 else {
-                    #pragma omp critical(decrBlob1)
                     decrBlob(0);
                 }
             }
@@ -531,6 +526,7 @@ void Strategy::computeBestMove () {
     int profondeur = 1;
     while(true){
         _saveBestMove(findMoveAlphaBeta(best_mv,profondeur));
+        std::cout << "Profondeur " << profondeur << " explorée" << std::endl;
         profondeur++;
     }
 }
