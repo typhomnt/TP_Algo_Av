@@ -42,6 +42,7 @@ private:
 
     // Calcule le score prévu par AlphaBeta avec une profondeur prof
     Sint32 alpha_beta(int prof, Uint16 tour,Sint32 A, Sint32 B);
+    Sint32 alpha_beta_parallel(int prof, Uint16 tour,Sint32 A, Sint32 B);
 
     // fonctions tenant compte du joueur courant
     void apply_relative_move (Uint16 player, const move& mv);
@@ -109,6 +110,7 @@ public:
     void change_current_player();
 
     move& findMoveAlphaBeta(move& mv, int prof);
+    move& findMoveAlphaBetaParallel(move& mv, int prof);
     
 };
 

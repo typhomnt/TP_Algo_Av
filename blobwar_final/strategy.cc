@@ -209,6 +209,121 @@ Sint32 Strategy::alpha_beta(int prof, Uint16 tour,Sint32 alpha, Sint32 beta){
     } else {
 
         bool no_valid_moves = true;
+        move mv(0,0,0,0);
+        //iterate on starting position
+        for(mv.ox = 0 ; mv.ox < 8 ; mv.ox++) {
+            for(mv.oy = 0 ; mv.oy < 8 ; mv.oy++) {
+                if (_blobs.get(mv.ox, mv.oy) == (int) tour) {
+                    //iterate on possible destinations
+                    for(mv.nx = std::max(0,mv.ox-2) ; mv.nx <= std::min(7,mv.ox+2) ; mv.nx++) {
+                        for(mv.ny = std::max(0,mv.oy-2) ; mv.ny <= std::min(7,mv.oy+2) ; mv.ny++) {
+                            if (_holes.get(mv.nx, mv.ny)) continue;
+                            if (_blobs.get(mv.nx, mv.ny) == -1){
+                                no_valid_moves = false;
+                                Sint32 curr_score;
+
+                                Strategy foresee(*this);
+                                foresee.apply_relative_move(tour, mv);
+                                curr_score = foresee.alpha_beta(prof-1, (tour+1)%2,alpha,beta);
+
+                                if(better_score(curr_score, best_score)){
+                                    best_score = curr_score;
+                                    if(tour == _current_player){
+                                        if(curr_score > alpha)
+                                            alpha = curr_score;
+                                        if(alpha >= beta)
+                                            return curr_score;
+                                    }
+                                    else{
+                                        if(curr_score < beta)
+                                            beta = curr_score;
+                                        if(alpha >= beta)
+                                            return curr_score;
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if(no_valid_moves){
+            if ((tour == _current_player && nb_blobs(_current_player) == 0) || 
+                    (tour != _current_player && nb_blobs((_current_player+1)%2) == 0)) {
+                return best_score;
+            } else {
+                Strategy foresee(*this);
+                return foresee.alpha_beta(prof-1, (tour+1)%2,alpha,beta);
+            }
+        }
+        return best_score;
+    }
+}
+
+
+
+move& Strategy::findMoveAlphaBeta(move& best_mv, int prof){
+
+    Sint16 tour = _current_player;
+    bool (*better_score)(int, int) = &sup;
+    Sint32 best_score = numeric_limits<Sint32>::min();
+    Sint32 alpha = numeric_limits<Sint32>::min();
+    Sint32 beta = numeric_limits<Sint32>::max();
+
+    move mv(0,0,0,0);
+    //iterate on starting position
+    for(mv.ox = 0 ; mv.ox < 8 ; mv.ox++) {
+        for(mv.oy = 0 ; mv.oy < 8 ; mv.oy++) {
+            if (_blobs.get(mv.ox, mv.oy) == (int) tour) {
+                //iterate on possible destinations
+                for(mv.nx = std::max(0,mv.ox-2) ; mv.nx <= std::min(7,mv.ox+2) ; mv.nx++) {
+                    for(mv.ny = std::max(0,mv.oy-2) ; mv.ny <= std::min(7,mv.oy+2) ; mv.ny++) {
+                        if (_holes.get(mv.nx, mv.ny)) continue;
+                        if (_blobs.get(mv.nx, mv.ny) == -1){
+                            Sint32 curr_score;
+
+                            Strategy foresee(*this);
+                            foresee.apply_relative_move(tour, mv);
+                            curr_score = foresee.alpha_beta(prof-1, (tour+1)%2,alpha,beta);
+                            if(better_score(curr_score, best_score)){
+                                best_score = curr_score;
+                                best_mv = mv;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return best_mv;
+
+
+
+}
+
+Sint32 Strategy::alpha_beta_parallel(int prof, Uint16 tour,Sint32 alpha, Sint32 beta){
+    bool (*better_score)(int, int);
+    Sint32 best_score;
+    if (tour == _current_player){
+        better_score = &sup;
+        best_score = numeric_limits<Sint32>::min();
+    } else {
+        better_score = &inf;
+        best_score = numeric_limits<Sint32>::max();
+    }
+
+    if(prof == 0){
+        if ((tour == _current_player && nb_blobs(_current_player) == 0) || 
+                (tour != _current_player && nb_blobs((_current_player+1)%2) == 0)) {
+            return best_score;
+        }
+
+        return estimateCurrentScore();
+
+    } else {
+
+        bool no_valid_moves = true;
         //iterate on starting position
         for(int ox = 0 ; ox < 8 ; ox++) {
             for(int oy = 0 ; oy < 8 ; oy++) {
@@ -284,7 +399,7 @@ Sint32 Strategy::alpha_beta(int prof, Uint16 tour,Sint32 alpha, Sint32 beta){
 
 
 
-move& Strategy::findMoveAlphaBeta(move& best_mv, int prof){
+move& Strategy::findMoveAlphaBetaParallel(move& best_mv, int prof){
 
     Sint16 tour = _current_player;
     bool (*better_score)(int, int) = &sup;
@@ -314,7 +429,7 @@ move& Strategy::findMoveAlphaBeta(move& best_mv, int prof){
 
                                 Strategy foresee(*this);
                                 foresee.apply_relative_move(tour, mv);
-                                curr_score = foresee.alpha_beta(prof-1, (tour+1)%2,alpha,beta);
+                                curr_score = foresee.alpha_beta_parallel(prof-1, (tour+1)%2,alpha,beta);
                                 #pragma omp critical(better_score)
                                 {
                                     if(better_score(curr_score, best_score)){
@@ -334,6 +449,7 @@ move& Strategy::findMoveAlphaBeta(move& best_mv, int prof){
 
 
 }
+
 
 Sint32 Strategy::min_max(int prof, Uint16 tour){
     bool (*better_score)(int, int);
@@ -368,20 +484,15 @@ Sint32 Strategy::min_max(int prof, Uint16 tour){
             }
         }
 
-        #pragma omp parallel for
-        for(unsigned int i = 0; i < valid_moves.size(); i++){
+        for(vector<move>::iterator curr_move = valid_moves.begin() ; curr_move != valid_moves.end() ; ++curr_move){
             Sint32 curr_score;
 
             Strategy foresee(*this);
-            foresee.apply_relative_move(tour, valid_moves[i]);
+            foresee.apply_relative_move(tour, *curr_move);
             curr_score = foresee.min_max(prof-1, (tour+1)%2);
-            #pragma omp critical(update_best_score)
-            {
-                if(better_score(curr_score, best_score)){
-                    best_score = curr_score;
-                }
+            if(better_score(curr_score, best_score)){
+                best_score = curr_score;
             }
-            
         }
 
         return best_score;
@@ -398,19 +509,15 @@ move& Strategy::findMoveMinMax(move& mv, int prof){
     vector<move> valid_moves;
     this->compute_relative_valid_moves(tour, valid_moves);
 
-    #pragma omp parallel for
-    for(unsigned int i = 0; i < valid_moves.size(); i++){
+    for(vector<move>::iterator curr_move = valid_moves.begin() ; curr_move != valid_moves.end() ; ++curr_move){
         Sint32 curr_score;
 
         Strategy foresee(*this);
-        foresee.apply_relative_move(tour, valid_moves[i]);
+        foresee.apply_relative_move(tour, *curr_move);
         curr_score = foresee.min_max(prof-1, (tour+1)%2);
-        #pragma omp critical(update_best_score_root)
-        {
-            if(better_score(curr_score, best_score)){
-                best_score = curr_score;
-                mv = valid_moves[i];
-            }
+        if(better_score(curr_score, best_score)){
+            best_score = curr_score;
+            mv = *curr_move;
         }
     }
 
@@ -423,8 +530,7 @@ void Strategy::computeBestMove () {
     move best_mv;
     int profondeur = 1;
     while(true){
-        _saveBestMove(findMoveMinMax(best_mv,profondeur));
-        std::cout << "Profondeur " << profondeur << " explorée" << std::endl;
+        _saveBestMove(findMoveAlphaBeta(best_mv,profondeur));
         profondeur++;
     }
 }
