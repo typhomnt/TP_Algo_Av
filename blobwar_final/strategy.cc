@@ -445,7 +445,6 @@ move& Strategy::findMoveAlphaBetaParallel(move& best_mv, int prof){
 
 }
 
-
 Sint32 Strategy::min_max(int prof, Uint16 tour){
     bool (*better_score)(int, int);
     Sint32 best_score;
@@ -479,15 +478,20 @@ Sint32 Strategy::min_max(int prof, Uint16 tour){
             }
         }
 
-        for(vector<move>::iterator curr_move = valid_moves.begin() ; curr_move != valid_moves.end() ; ++curr_move){
+        #pragma omp parallel for
+        for(unsigned int i = 0; i < valid_moves.size(); i++){
             Sint32 curr_score;
 
             Strategy foresee(*this);
-            foresee.apply_relative_move(tour, *curr_move);
+            foresee.apply_relative_move(tour, valid_moves[i]);
             curr_score = foresee.min_max(prof-1, (tour+1)%2);
-            if(better_score(curr_score, best_score)){
-                best_score = curr_score;
+            #pragma omp critical(update_best_score)
+            {
+                if(better_score(curr_score, best_score)){
+                    best_score = curr_score;
+                }
             }
+            
         }
 
         return best_score;
@@ -504,15 +508,19 @@ move& Strategy::findMoveMinMax(move& mv, int prof){
     vector<move> valid_moves;
     this->compute_relative_valid_moves(tour, valid_moves);
 
-    for(vector<move>::iterator curr_move = valid_moves.begin() ; curr_move != valid_moves.end() ; ++curr_move){
+    #pragma omp parallel for
+    for(unsigned int i = 0; i < valid_moves.size(); i++){
         Sint32 curr_score;
 
         Strategy foresee(*this);
-        foresee.apply_relative_move(tour, *curr_move);
+        foresee.apply_relative_move(tour, valid_moves[i]);
         curr_score = foresee.min_max(prof-1, (tour+1)%2);
-        if(better_score(curr_score, best_score)){
-            best_score = curr_score;
-            mv = *curr_move;
+        #pragma omp critical(update_best_score_root)
+        {
+            if(better_score(curr_score, best_score)){
+                best_score = curr_score;
+                mv = valid_moves[i];
+            }
         }
     }
 
