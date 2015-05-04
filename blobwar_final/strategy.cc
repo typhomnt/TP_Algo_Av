@@ -47,7 +47,9 @@ void Strategy::apply_relative_move (Uint16 player, const move& mv){
         _blobs.set(mv.nx, mv.ny, player);
     }
 
+    #pragma omp parallel for
     for(Sint8 i = -1 ; i < 2 ; i++)
+        #pragma omp parallel for
         for(Sint8 j = -1 ; j < 2 ; j++) {
             if (mv.nx+i < 0) continue;
             if (mv.nx+i > 7) continue;
@@ -55,11 +57,14 @@ void Strategy::apply_relative_move (Uint16 player, const move& mv){
             if (mv.ny+j > 7) continue;
             if ((_blobs.get(mv.nx+i, mv.ny+j)!=-1)&&(_blobs.get(mv.nx+i, mv.ny+j)!=player)) {
                 _blobs.set(mv.nx+i, mv.ny+j, player);
+                #pragma omp critical(incrBlob)
                 incrBlob(player);
                 if(player == 0) {
+                    #pragma omp critical(decrBlob0)
                     decrBlob(player + 1);
                 } 
                 else {
+                    #pragma omp critical(decrBlob1)
                     decrBlob(0);
                 }
             }
@@ -117,14 +122,27 @@ vector<move>& Strategy::compute_relative_valid_moves (Sint16 player, vector<move
 
     move mv(0,0,0,0);
     //iterate on starting position
-    for(mv.ox = 0 ; mv.ox < 8 ; mv.ox++) {
-        for(mv.oy = 0 ; mv.oy < 8 ; mv.oy++) {
-            if (_blobs.get(mv.ox, mv.oy) == (int) player) {
+    #pragma omp parallel for
+    for(int ox = 0 ; ox < 8 ; ox++) {
+    #pragma omp parallel for
+        for( int oy = 0 ; oy < 8 ; oy++) {
+            if (_blobs.get(ox, oy) == (int) player) {
                 //iterate on possible destinations
-                for(mv.nx = std::max(0,mv.ox-2) ; mv.nx <= std::min(7,mv.ox+2) ; mv.nx++) {
-                    for(mv.ny = std::max(0,mv.oy-2) ; mv.ny <= std::min(7,mv.oy+2) ; mv.ny++) {
-                        if (_holes.get(mv.nx, mv.ny)) continue;
-                        if (_blobs.get(mv.nx, mv.ny) == -1) valid_moves.push_back(mv);
+    #pragma omp parallel for
+                for(int nx = std::max(0,ox-2) ; nx <= std::min(7,ox+2) ; nx++) {
+    #pragma omp parallel for
+                    for(int ny = std::max(0,oy-2) ; ny <= std::min(7,oy+2) ; ny++) {
+                        if (_holes.get(nx, ny)) continue;
+                        if (_blobs.get(nx, ny) == -1){
+                            mv.ox = ox;
+                            mv.oy = oy;
+                            mv.nx = nx;
+                            mv.ny = ny;
+#pragma omp critical(push_back)
+                            {
+                            valid_moves.push_back(mv);
+                            }
+                        }
                     }
                 }
             }
@@ -190,36 +208,43 @@ Sint32 Strategy::alpha_beta(int prof, Uint16 tour,Sint32 alpha, Sint32 beta){
     } else {
 
         bool no_valid_moves = true;
-        move mv(0,0,0,0);
         //iterate on starting position
-        for(mv.ox = 0 ; mv.ox < 8 ; mv.ox++) {
-            for(mv.oy = 0 ; mv.oy < 8 ; mv.oy++) {
-                if (_blobs.get(mv.ox, mv.oy) == (int) tour) {
+#pragma omp parallel for
+        for(int ox = 0 ; ox < 8 ; ox++) {
+#pragma omp parallel for
+            for(int oy = 0 ; oy < 8 ; oy++) {
+                if (_blobs.get(ox, oy) == (int) tour) {
                     //iterate on possible destinations
-                    for(mv.nx = std::max(0,mv.ox-2) ; mv.nx <= std::min(7,mv.ox+2) ; mv.nx++) {
-                        for(mv.ny = std::max(0,mv.oy-2) ; mv.ny <= std::min(7,mv.oy+2) ; mv.ny++) {
-                            if (_holes.get(mv.nx, mv.ny)) continue;
-                            if (_blobs.get(mv.nx, mv.ny) == -1){
+#pragma omp parallel for
+                    for(int nx = std::max(0,ox-2) ; nx <= std::min(7,ox+2) ; nx++) {
+#pragma omp parallel for
+                        for(int ny = std::max(0,oy-2) ; ny <= std::min(7,oy+2) ; ny++) {
+                            if (_holes.get(nx, ny)) continue;
+                            if (_blobs.get(nx, ny) == -1){
                                 no_valid_moves = false;
                                 Sint32 curr_score;
 
+        move mv(ox,oy,nx,ny);
                                 Strategy foresee(*this);
                                 foresee.apply_relative_move(tour, mv);
                                 curr_score = foresee.alpha_beta(prof-1, (tour+1)%2,alpha,beta);
 
-                                if(better_score(curr_score, best_score)){
-                                    best_score = curr_score;
-                                    if(tour == _current_player){
-                                        if(curr_score > alpha)
-                                            alpha = curr_score;
-                                        if(alpha >= beta)
-                                            return curr_score;
-                                    }
-                                    else{
-                                        if(curr_score < beta)
-                                            beta = curr_score;
-                                        if(alpha >= beta)
-                                            return curr_score;
+                                #pragma omp critical(better_score_root)
+                                {
+                                    if(better_score(curr_score, best_score)){
+                                        best_score = curr_score;
+                                        if(tour == _current_player){
+                                            if(curr_score > alpha)
+                                                alpha = curr_score;
+                                            if(alpha >= beta)
+                                                return curr_score;
+                                        }
+                                        else{
+                                            if(curr_score < beta)
+                                                beta = curr_score;
+                                            if(alpha >= beta)
+                                                return curr_score;
+                                        }
                                     }
                                 }
 
@@ -252,24 +277,31 @@ move& Strategy::findMoveAlphaBeta(move& best_mv, int prof){
     Sint32 alpha = numeric_limits<Sint32>::min();
     Sint32 beta = numeric_limits<Sint32>::max();
 
-    move mv(0,0,0,0);
     //iterate on starting position
-    for(mv.ox = 0 ; mv.ox < 8 ; mv.ox++) {
-        for(mv.oy = 0 ; mv.oy < 8 ; mv.oy++) {
-            if (_blobs.get(mv.ox, mv.oy) == (int) tour) {
+#pragma omp parallel for
+    for(int ox = 0 ; ox < 8 ; ox++) {
+#pragma omp parallel for
+        for(int oy = 0 ; oy < 8 ; oy++) {
+            if (_blobs.get(ox, oy) == (int) tour) {
                 //iterate on possible destinations
-                for(mv.nx = std::max(0,mv.ox-2) ; mv.nx <= std::min(7,mv.ox+2) ; mv.nx++) {
-                    for(mv.ny = std::max(0,mv.oy-2) ; mv.ny <= std::min(7,mv.oy+2) ; mv.ny++) {
-                        if (_holes.get(mv.nx, mv.ny)) continue;
-                        if (_blobs.get(mv.nx, mv.ny) == -1){
+#pragma omp parallel for
+                for(int nx = std::max(0,ox-2) ; nx <= std::min(7,ox+2) ; nx++) {
+#pragma omp parallel for
+                    for(int ny = std::max(0,oy-2) ; ny <= std::min(7,oy+2) ; ny++) {
+                        if (_holes.get(nx, ny)) continue;
+                        if (_blobs.get(nx, ny) == -1){
+                            move mv(ox,oy,nx,ny);
                             Sint32 curr_score;
 
                             Strategy foresee(*this);
                             foresee.apply_relative_move(tour, mv);
                             curr_score = foresee.alpha_beta(prof-1, (tour+1)%2,alpha,beta);
+#pragma omp critical(better_score)
+                            {
                             if(better_score(curr_score, best_score)){
                                 best_score = curr_score;
                                 best_mv = mv;
+                            }
                             }
                         }
                     }
@@ -371,7 +403,8 @@ void Strategy::computeBestMove () {
     move best_mv;
     int profondeur = 1;
     while(true){
-        _saveBestMove(findMoveAlphaBeta(best_mv,profondeur));
+        _saveBestMove(findMoveMinMax(best_mv,profondeur));
+        std::cout << "Profondeur " << profondeur << " explorée" << std::endl;
         profondeur++;
     }
 }
