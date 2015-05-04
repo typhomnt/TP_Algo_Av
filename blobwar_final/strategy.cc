@@ -316,14 +316,18 @@ Sint32 Strategy::min_max(int prof, Uint16 tour){
             }
         }
 
+        #pragma omp parallel for
         for(vector<move>::iterator curr_move = valid_moves.begin() ; curr_move != valid_moves.end() ; ++curr_move){
             Sint32 curr_score;
 
             Strategy foresee(*this);
             foresee.apply_relative_move(tour, *curr_move);
             curr_score = foresee.min_max(prof-1, (tour+1)%2);
-            if(better_score(curr_score, best_score)){
-                best_score = curr_score;
+            #pragma omp critical(update_best_score)
+            {
+                if(better_score(curr_score, best_score)){
+                    best_score = curr_score;
+                }
             }
         }
 
@@ -341,15 +345,19 @@ move& Strategy::findMoveMinMax(move& mv, int prof){
     vector<move> valid_moves;
     this->compute_relative_valid_moves(tour, valid_moves);
 
+    #pragma omp parallel for
     for(vector<move>::iterator curr_move = valid_moves.begin() ; curr_move != valid_moves.end() ; ++curr_move){
         Sint32 curr_score;
 
         Strategy foresee(*this);
         foresee.apply_relative_move(tour, *curr_move);
         curr_score = foresee.min_max(prof-1, (tour+1)%2);
-        if(better_score(curr_score, best_score)){
-            best_score = curr_score;
-            mv = *curr_move;
+        #pragma omp critical(update_best_score_root)
+        {
+            if(better_score(curr_score, best_score)){
+                best_score = curr_score;
+                mv = *curr_move;
+            }
         }
     }
 
